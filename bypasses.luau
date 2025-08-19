@@ -1,4 +1,6 @@
-print("# Very cool bypasses enabled")
+print("# Very cool bypasses enabled, by @delovoymuzhchina")
+
+local PlayerClass = Instance.new('Player')
 
 local RobloxEnv = getrenv()
 local ExploitEnv = getgenv()
@@ -19,6 +21,22 @@ local old; old = hookfunction(RobloxEnv.getfenv, newcclosure(function(level: num
    return old(level)
 end))
 
+local old; old = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+    local namecall = getnamecallmethod()
+	
+    if not checkcaller() then
+        if self.ClassName == "Player" and namecall == "Kick" then
+            return coroutine.yield(coroutine.running())
+        end
+    end
+    return old(self, ...)
+end))
+
+local old; old = hookfunction(PlayerClass.Kick, newcclosure(function(self, reason)
+    if not checkcaller() then return coroutine.yield(coroutine.running()) end
+    return old(self, reason)
+end))
+
 ExploitEnv.decompile = function(Script)
 	local httpresponse = request({
         	Url = "http://127.0.0.1:9002",
@@ -35,7 +53,7 @@ end
 local old; old = hookfunction(RobloxEnv.require, newcclosure(function(Module: ModuleScript | string | number): any
     if not checkcaller() and typeof(Module) == "Instance" and Module.Name == 'Anti' and Module.Parent and Module.Parent.Name == "Core" then
         print('[!] Adonis sucks:', Module)
-        return {}
+       return {}
     end
     return old(Module)
 end))
