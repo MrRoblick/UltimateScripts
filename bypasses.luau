@@ -1,7 +1,7 @@
-print("# Very cool bypasses enabled, by @delovoymuzhchina")
+print("# Very cool bypasses enabled")
 
 local PlayerClass = Instance.new('Player')
-
+local CurrentScript = script
 local RobloxEnv = getrenv()
 local ExploitEnv = getgenv()
 
@@ -49,14 +49,19 @@ ExploitEnv.decompile = function(Script)
     return httpresponse.Body
 end
 
-
 local old; old = hookfunction(RobloxEnv.require, newcclosure(function(Module: ModuleScript | string | number): any
     if not checkcaller() and typeof(Module) == "Instance" and Module.Name == 'Anti' and Module.Parent and Module.Parent.Name == "Core" then
         print('[!] Adonis sucks:', Module)
        return {}
     end
-    return old(Module)
+    
+    script = getcallingscript()
+    local Result = old(Module)
+    script = CurrentScript
+
+    return Result
 end))
+
 
 
 local synsaveinstance = loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.luau"))()
