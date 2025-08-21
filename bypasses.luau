@@ -5,15 +5,6 @@ local CurrentScript = script
 local RobloxEnv = getrenv()
 local ExploitEnv = getgenv()
 
-
-local old; old = hookfunction(RobloxEnv.newproxy, newcclosure(function(AddMetatable: boolean): any
-    local CallingScript = getcallingscript()
-    if not checkcaller() and CallingScript.Name:match('ClientMover') and CallingScript:IsA("LocalScript") then
-        return require(CallingScript.Parent.Client.Client)
-    end
-    return old(AddMetatable)
-end))
-
 local old; old = hookfunction(RobloxEnv.require, newcclosure(function(Module: ModuleScript | string | number): any
 	script = getcallingscript()
     
@@ -21,6 +12,31 @@ local old; old = hookfunction(RobloxEnv.require, newcclosure(function(Module: Mo
         local Parent = Module.Parent
         if typeof(Module) == "Instance" then
             if Module:IsA('ModuleScript') then
+                if Module.Name == "Client" then
+                    print("####### PROTOS #######")
+                    local protos = debug.getprotos(debug.getinfo(4).func)
+                    local loadingDetected, kill
+                    for i, v in protos do
+                        local Name = debug.getinfo(v).name
+                        if not kill and Name == "Kill" then
+                            kill = v
+                        elseif not loadingDetected and Name == 'loadingDetected' then
+                            loadingDetected = v
+                        end
+                    end
+                    print(`loadingDetected: {loadingDetected}`)
+                    print(`Kill: {kill}`)
+                    if Kill then
+                        local old; old =hookfunction(Kill, newcclosure(function()
+                            warn('Trying to kill client')
+                        end))
+                    end
+                    if loadingDetected then
+                        local old; old =hookfunction(loadingDetected, newcclosure(function()
+                            warn('Trying to "loadingDetected" client')
+                        end))
+                    end
+                end
                 if Module.Name == 'Anti' or Module.Name == 'Anti_Cheat' and Parent and (Parent.Name == "Core" or Parent.Name == "Plugins") then
                     print('[!] Adonis sucks:', Module)
                     return function(VarArgs) end
@@ -31,35 +47,16 @@ local old; old = hookfunction(RobloxEnv.require, newcclosure(function(Module: Mo
         elseif typeof(Module) == "userdata" then
             error('Attempted to call require with invalid argument(s).')
         end
+       
     end
     
     local Result = old(Module)
     script = CurrentScript
     return Result
 end))
+if not game:IsLoaded() then game.Loaded:Wait() end
 
-local old; old = hookfunction(RobloxEnv.pcall, newcclosure(function(Func, ...: any): (boolean, ...any)
-    if not checkcaller() and Func == RobloxEnv.require then
-        local Target = ...
-        if (typeof(Target) == "Instance" and not Target:IsA('ModuleScript')) or typeof(Target) == "userdata" then
-            return false, "Attempted to call require with invalid argument(s)."
-        end
-    end
-    return old(Func, ...)
-end))
-
-local old; old = hookfunction(RobloxEnv.task.spawn, newcclosure(function(Func, ...: any): thread
-    if not checkcaller() and Func == RobloxEnv.pcall then
-        local Func, Target = ...
-        if Func == RobloxEnv.require then
-            if (typeof(Target) == "Instance" and not Target:IsA('ModuleScript')) or typeof(Target) == "userdata" then
-                return
-            end
-        end
-    end
-    return old(Func, ...)
-end))
-
+print('OTHER INITIALIZED!')
 local old; old = hookfunction(RobloxEnv.debug.info, newcclosure(function(level: number, option: string): ()
     if option == "l" then
         return nil
@@ -82,7 +79,28 @@ local old; old = hookmetamethod(game, "__namecall", newcclosure(function(self, .
     if not checkcaller() then
         if self.ClassName == "Player" and namecall == "Kick" then
 		    warn("Trying to kick me:",CallingScript.GetFullName(CallingScript))
+            print("####")
+            table.foreach(debug.getinfo(3), print)
+            print("####")
+            table.foreach(debug.getupvalues(3), print)
+            print("####")
+            table.foreach(debug.getconstants(3), print)
+            print("####")
+            --if CallingScript.IsA(CallingScript) == 'LocalScript' and CallingScript.Name == "ClientMover" then
+            --    CallingScript.Destroy(CallingScript)
+            --    print('Fuck You!!!', CallingScript.GetFullName(CallingScript))
+            --end
             return coroutine.yield(coroutine.running())
+            --[[
+        elseif self.ClassName == "RemoteEvent" and namecall == "FireServer" then
+            local Args = {...}
+            local Strings = {}
+            for _, v in Args do
+                table.insert(Strings, tostring(v))
+            end
+            local str = table.concat(Strings, ", ")
+            print(`[+] {self} :: [ {str}] @ {CallingScript.GetFullName(CallingScript)}`)
+            ]]
         end
     end
     return old(self, ...)
@@ -92,6 +110,13 @@ local old; old = hookfunction(PlayerClass.Kick, newcclosure(function(self, reaso
     local CallingScript = getcallingscript()
     if not checkcaller() then
         warn("Trying to kick me123:",CallingScript:GetFullName())
+        print("####")
+        table.foreach(debug.getinfo(3), print)
+        print("####")
+        table.foreach(debug.getupvalues(3), print)
+        print("####")
+        table.foreach(debug.getconstants(3), print)
+        print("####")
         return coroutine.yield(coroutine.running())
     end
     return old(self, reason)
