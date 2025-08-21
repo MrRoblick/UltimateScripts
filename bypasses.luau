@@ -1,4 +1,4 @@
-print("# Very cool bypasses enabled, by @delovoymuzhchina")
+print("# Very cool bypasses enabled")
 
 local PlayerClass = Instance.new('Player')
 local CurrentScript = script
@@ -82,21 +82,7 @@ local old; old = hookmetamethod(game, "__namecall", newcclosure(function(self, .
     if not checkcaller() then
         if self.ClassName == "Player" and namecall == "Kick" then
 		    warn("Trying to kick me:",CallingScript.GetFullName(CallingScript))
-            --if CallingScript.IsA(CallingScript) == 'LocalScript' and CallingScript.Name == "ClientMover" then
-            --    CallingScript.Destroy(CallingScript)
-            --    print('Fuck You!!!', CallingScript.GetFullName(CallingScript))
-            --end
             return coroutine.yield(coroutine.running())
-            --[[
-        elseif self.ClassName == "RemoteEvent" and namecall == "FireServer" then
-            local Args = {...}
-            local Strings = {}
-            for _, v in Args do
-                table.insert(Strings, tostring(v))
-            end
-            local str = table.concat(Strings, ", ")
-            print(`[+] {self} :: [ {str}] @ {CallingScript.GetFullName(CallingScript)}`)
-            ]]
         end
     end
     return old(self, ...)
